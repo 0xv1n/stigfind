@@ -1,5 +1,5 @@
 # Tracker
-*Updated as of:* 2022-10-26
+*Updated as of:* 2022-10-27
 
 - [x] V-63319
 - [x] V-63321
@@ -8,14 +8,14 @@
 - [x] V-63329
 - [x] V-63333
 - [x] V-63335
-- [ ] V-63337
-- [ ] V-63339
-- [ ] V-63341
-- [ ] V-63343
-- [ ] V-63345
-- [ ] V-63347
-- [ ] V-63349
-- [ ] V-63351
+- [x] V-63337
+- [x] V-63339
+- [x] V-63341
+- [x] V-63343 **Not Implemented**: [Requires manual review](https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63343.rb)
+- [x] V-63345 **Not Implemented**: [Requires manual review](https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63345.rb)
+- [x] V-63347
+- [x] V-63349
+- [x] V-63351 **Needs additional testing**: Validated for Defender only
 - [ ] V-63353
 - [ ] V-63355
 - [ ] V-63357
