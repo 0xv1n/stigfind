@@ -19,10 +19,9 @@ Describe "Software Policies" {
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63337.rb
     It "V-63337: Windows 10 information systems must use BitLocker to encrypt all disks to protect the confidentiality and integrity of all information at rest." {
-      $setting = ''
       # this is hacky, essentially loops through every volume and if it finds a singly unencrypted volume this fails
-      $loop = foreach ($volume in Get-BitLockerVolume) { If ($volume.ProtectionStatus -eq "Off") { $setting = 0 } }
-      $setting | Should -Not -Be 0
+      foreach ($volume in Get-BitLockerVolume) { If ($volume.ProtectionStatus -eq "Off") { $setting = 1; break } Else { $setting = 0 } }
+      $setting | Should -Be 0
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63349.rb
     It "V-63349-CurrentVersion: Windows 10 systems must be maintained at a supported servicing level." {
@@ -106,8 +105,7 @@ Describe "Software Policies" {
   Context "Additional Features" {
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63377.rb
     It "V-63377: Internet Information System (IIS) or its subcomponents must not be installed on a workstation." {
-      $setting = ''
-      $loop = foreach($iis in (Get-WindowsOptionalFeature -Online -FeatureName “IIS*”)) { If ($iis.State -ne 'Disabled') { $setting = 1; break } Else { $setting = 0 } }
+      foreach($iis in (Get-WindowsOptionalFeature -Online -FeatureName “IIS*”)) { If ($iis.State -ne 'Disabled') { $setting = 1; break } Else { $setting = 0 } }
       $setting | Should -Be 0
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63381.rb
@@ -135,9 +133,8 @@ Describe "Software Policies" {
   Context "Firewall" {
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63399.rb
     It "V-63399: A host-based firewall must be installed and enabled on the system." {
-      $setting = ''
       # Iterates through Domain, Private, and Public Firewall profiles. All must be enabled. 
-      $loop = foreach ($fw in ((Get-NetFirewallProfile).Enabled)) { If ($fw -eq "False") { $setting = 1; break } Else { $setting = 0 } }
+      foreach ($fw in ((Get-NetFirewallProfile).Enabled)) { If ($fw -eq "False") { $setting = 1; break } Else { $setting = 0 } }
       $setting | Should -Be 0
     }
   }
@@ -159,10 +156,9 @@ Describe "Hardware Policies" {
   Context "Logical Drives" {
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63353.rb
     It "V-63353: Local volumes must be formatted using NTFS." {
-      $setting = ''
       # TODO: Is there a better way than this hacky stuff?
-      $loop = foreach ($disk in (wmic logicaldisk get FileSystem | findstr /r /v '^$' |Findstr /v 'FileSystem')) { If ($disk -ne "NTFS") { $setting = 0 } }
-      $setting | Should -Not -Be 0
+      foreach ($disk in (wmic logicaldisk get FileSystem | findstr /r /v '^$' |Findstr /v 'FileSystem')) { If ($disk -ne "NTFS") { $setting = 1; break } Else { $setting = 0 } }
+      $setting | Should -Be 0
     }
   }
 }
@@ -173,24 +169,21 @@ Describe "Account Policies" {
     It "V-63361: Only accounts responsible for the administration of a system must have Administrator rights on the system." {
       # Any accounts found added to this group should be reviewed per the STIG.
       # Note: The default local Administrator account should not be enabled in a domain per V-63367, but this may flag it.
-      $setting = ''
-      $loop =  foreach ($acct in (net localgroup Administrators | Format-List | Findstr /V 'Alias Name Comment Members - command')) { If ($acct -ne "") { $setting = 0 } }
-      $setting | Should -Not -Be 0
+      foreach ($acct in (net localgroup Administrators | Format-List | Findstr /V 'Alias Name Comment Members - command')) { If ($acct -ne "") { $setting = 1; break } Else { $setting = 0 } }
+      $setting | Should -Be 0
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63363.rb
     It "V-63363: Only accounts responsible for the backup operations must be members of the Backup Operators group." {
       # TODO: Is there a better way than this hacky stuff?
-      $setting = ''
       # Any accounts found added to this group should be reviewed per the STIG.
-      $loop =  foreach ($acct in (net localgroup "Backup Operators" | Format-List | Findstr /V 'Alias Name Comment Members - command')) { If ($acct -ne "") { $setting = 0 } }
+      foreach ($acct in (net localgroup "Backup Operators" | Format-List | Findstr /V 'Alias Name Comment Members - command')) { If ($acct -ne "") { $setting = 1; break } Else { $setting = 0 } }
       $setting | Should -Be 0
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63365.rb
     It "V-63365: Only authorized user accounts must be allowed to create or run virtual machines on Windows 10 systems." {
       # TODO: Is there a better way than this hacky stuff?
-      $setting = ''
       # Any accounts found added to this group should be reviewed per the STIG.
-      $loop =  foreach ($acct in (net localgroup "Hyper-V Administrators" | Format-List | Findstr /V 'Alias Name Comment Members - command')) { If ($acct -ne "") { $setting = 0 } }
+      foreach ($acct in (net localgroup "Hyper-V Administrators" | Format-List | Findstr /V 'Alias Name Comment Members - command')) { If ($acct -ne "") { $setting = 1; break } Else { $setting = 0 } }
       $setting | Should -Be 0
     }
   }
@@ -198,10 +191,9 @@ Describe "Account Policies" {
   Context "Default Accounts" {
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63367.rb
     It "V-63367: Standard local user accounts must not exist on a system in a domain." {
-      $setting = ''
       $default_acct = @('Administrator', 'Guest', 'DefaultAccount', 'defaultuser0', 'WDAGUtilityAccount')
       # Note: A single enabled default account fails this test, review the list of local users.
-      $loop = foreach ($acct in $default_acct) { If ((Get-LocalUser $acct).Enabled -ne "True") { $setting = '0' } }
+      foreach ($acct in $default_acct) { If ((Get-LocalUser $acct).Enabled -eq "True") { $setting = 1; break } Else { $setting = 0 } }
       $setting | Should -Be 0
     }
   }
@@ -209,9 +201,8 @@ Describe "Account Policies" {
   Context "Passwords" {
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63371.rb
     It "V-63371: Accounts must be configured to require password expiration." {
-      $setting = ''
-      $loop = foreach ($acct in (Get-CimInstance -Class Win32_Useraccount -Filter 'PasswordExpires=False and LocalAccount=True and Disabled=False' | FT Name | Findstr /V 'Name --')) { If ($acct -ne "") {$setting = 0} }
-      $setting | Should -Not -Be 0
+      foreach ($acct in (Get-CimInstance -Class Win32_Useraccount -Filter 'PasswordExpires=False and LocalAccount=True and Disabled=False' | Format-Table Name | Findstr /V 'Name --')) { If ($acct -ne "") {$setting = 1; break} Else { $setting = 0 } }
+      $setting | Should -Be 0
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63415.rb
     It "V-63415: The password history must be configured to 24 passwords remembered." {
@@ -249,7 +240,6 @@ Describe "File Permissions" {
     #   local SID perms are usually listed first.
     # TODO: In general, I think a better way should be explored.
     It "V-63373-C:\\: Permissions for system files and directories must conform to minimum requirements." {
-      $setting = 1
       $default_perms = @(
         'BUILTIN\\Administrators:(OI)(CI)(F)',
         'NT AUTHORITY\\SYSTEM:(OI)(CI)(F)',
@@ -259,11 +249,10 @@ Describe "File Permissions" {
         'Mandatory Label\\High Mandatory Level:(OI)(NP)(IO)(NW)'
       )
       # TODO: Needs more testing
-      $loop = foreach($line in (icacls 'C:\\' | Findstr /V 'Successfully' | Findstr /r /v "^$")) { $trimmed = ($line | Out-String).Trim(); If ($trimmed -in $default_perms) { $setting = 0 } Else {$setting = 1; break} }
+      foreach($line in (icacls 'C:\\' | Findstr /V 'Successfully' | Findstr /r /v "^$")) { $trimmed = ($line | Out-String).Trim(); If ($trimmed -in $default_perms) { $setting = 0 } Else { $setting = 1; break } }
       $setting | Should -Be 0
     }
     It "V-63373-C:\\Program Files: Permissions for system files and directories must conform to minimum requirements." {
-      $setting ''
       $default_perms = @(
         'C:\\Program Files NT SERVICE\TrustedInstaller:(F)',
         'NT SERVICE\\TrustedInstaller:(CI)(IO)(F)',
@@ -281,11 +270,10 @@ Describe "File Permissions" {
         'PACKAGES:(OI)(CI)(IO)(GR,GE)'
       )
       # TODO: Needs more testing
-      $loop = foreach($line in (icacls 'C:\\Program Files' | Findstr /V 'Successfully' | Findstr /r /v "^$")) { $trimmed = ($line | Out-String).Trim(); If ($trimmed -in $default_perms) { $setting = 0 } Else {$setting = 1; break}  }
+      foreach($line in (icacls 'C:\\Program Files' | Findstr /V 'Successfully' | Findstr /r /v "^$")) { $trimmed = ($line | Out-String).Trim(); If ($trimmed -in $default_perms) { $setting = 0 } Else { $setting = 1; break }  }
       $setting | Should -Be 0
     }
     It "V-63373-C:\\Windows: Permissions for system files and directories must conform to minimum requirements." {
-      $setting = ''
       $default_perms = @(
         'C:\\Windows NT SERVICE\TrustedInstaller:(F)',
         'NT SERVICE\\TrustedInstaller:(CI)(IO)(F)',
@@ -303,7 +291,7 @@ Describe "File Permissions" {
         'PACKAGES:(OI)(CI)(IO)(GR,GE)'
       )
       # TODO: Needs more testing
-      $loop = foreach($line in (icacls 'C:\\Windows' | Findstr /V 'Successfully' | Findstr /r /v "^$")) { $trimmed = ($line | Out-String).Trim(); If ($trimmed -in $default_perms) { $setting = 0 } Else {$setting = 1; break}  }
+      foreach($line in (icacls 'C:\\Windows' | Findstr /V 'Successfully' | Findstr /r /v "^$")) { $trimmed = ($line | Out-String).Trim(); If ($trimmed -in $default_perms) { $setting = 0 } Else {$setting = 1; break}  }
       $setting | Should -Be 0
     }
   }
