@@ -131,6 +131,16 @@ Describe "Software Policies" {
       $setting | Should -Be "Disabled"
     }
   }
+
+  Context "Firewall" {
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63399.rb
+    It "V-63399: A host-based firewall must be installed and enabled on the system." {
+      $setting = ''
+      # Iterates through Domain, Private, and Public Firewall profiles. All must be enabled. 
+      $loop = foreach ($fw in ((Get-NetFirewallProfile).Enabled)) { If ($fw -eq "False") { $setting = 1; break } Else { $setting = 0 } }
+      $setting | Should -Be 0
+    }
+  }
 }
 
 Describe "Hardware Policies" {
@@ -202,6 +212,31 @@ Describe "Account Policies" {
       $setting = ''
       $loop = foreach ($acct in (Get-CimInstance -Class Win32_Useraccount -Filter 'PasswordExpires=False and LocalAccount=True and Disabled=False' | FT Name | Findstr /V 'Name --')) { If ($acct -ne "") {$setting = 0} }
       $setting | Should -Not -Be 0
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63415.rb
+    It "V-63415: The password history must be configured to 24 passwords remembered." {
+      $setting = ((net accounts | findstr "history").split(':')[1] | Out-String).Trim()
+      $setting | Should -Not -Be "Never"
+      $setting | Should -BeGreaterOrEqual 24
+    }
+  }
+
+  Context "Security" {
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63405.rb
+    It "V-63405: Windows 10 account lockout duration must be configured to <x> minutes or greater." {
+      $x = 30
+      # Microsoft default is 30 minutes - We will check if it's less.
+      # This does not currently use AD objects - adjust as needed.
+      $setting = ((net accounts | findstr "Lockout" | findstr "duration").split(':')[1] | Out-String).Trim()
+      $setting | Should -BeGreaterOrEqual $x
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63409.rb
+    It "V-63409: The number of allowed bad logon attempts must be configured to <x> or less." {
+      # Never, 0, or too high a number fail this test. Replace x val with reasonable value.
+      $x = 3
+      $setting = ((net accounts | findstr "Lockout" | findstr "threshold").split(':')[1] | Out-String).Trim()
+      $setting | Should -Not -Be "Never"
+      $setting | Should -BeGreaterOrEqual $x
     }
   }
 }
