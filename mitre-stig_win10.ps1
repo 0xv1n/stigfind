@@ -16,7 +16,7 @@ Describe "Software Policies" {
     It "V-63319: Domain-joined systems must use Windows 10 Enterprise Edition 64-bit version." {
       $edition = (Get-WindowsEdition -Online).Edition
       $arch = (Get-Wmiobject Win32_Processor).AddressWidth
-      If (($edition -eq "Enterprise") -and ($arch = 64)) { $setting = 0 } Else { $setting = 1 }
+      If (($edition -eq "Enterprise") -and ($arch -eq 64)) { $setting = 0 } Else { $setting = 1 }
       $setting | Should -Be 0
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63337.rb
