@@ -4,18 +4,20 @@
 #     e.g., If a value is not what is specified, it is a "finding".
 #     This can mean that it is configured incorrectly, or does not exist.
 #     For full documentation, refer to MITRE repo, descriptions will not be copied.
+# 
 # Source:
 #   https://github.com/mitre/microsoft-windows-10-stig-baseline/tree/master/controls
+# 
+#########################################################################################
+
 Describe "Software Policies" {
   Context "Operating System" {
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63319.rb
-    It "V-63319-Edition: Domain-joined systems must use Windows 10 Enterprise Edition 64-bit version." {
-      $setting = (Get-WindowsEdition -Online).Edition
-      $setting | Should -Be "Enterprise"
-    }
-    It "V-63319-Architecture: Domain-joined systems must use Windows 10 Enterprise Edition 64-bit version." {
-      $setting = (Get-Wmiobject Win32_Processor).AddressWidth
-      $setting | Should -Be 64
+    It "V-63319: Domain-joined systems must use Windows 10 Enterprise Edition 64-bit version." {
+      $edition = (Get-WindowsEdition -Online).Edition
+      $arch = (Get-Wmiobject Win32_Processor).AddressWidth
+      If (($edition -eq "Enterprise") -and ($arch = 64)) { $setting = 0 } Else { $setting = 1 }
+      $setting | Should -Be 0
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63337.rb
     It "V-63337: Windows 10 information systems must use BitLocker to encrypt all disks to protect the confidentiality and integrity of all information at rest." {
@@ -34,9 +36,9 @@ Describe "Software Policies" {
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63355.rb
     It "V-63355: Alternate operating systems must not be permitted on the same system." {
-      $setting = (bcdedit | Findstr description | Findstr /v /c:'Windows Boot Manager')
+      $setting = (bcdedit | Findstr description | Findstr /v /c:'Windows Boot Manager').Substring(24)
       # TODO: can this be parsed/filtered better to just be 10 or Windows 10?
-      $setting | Should -Be "description             Windows 10"
+      $setting | Should -Be "Windows 10"
     }
   }
 
@@ -143,13 +145,11 @@ Describe "Software Policies" {
 Describe "Hardware Policies" {
   Context "TPM" {
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63323.rb
-    It "V-63323-TPMPresent: Windows 10 domain-joined systems must have a Trusted Platform Module (TPM) enabled." {
-      $setting = (Get-Tpm).TpmPresent
-      $setting | Should -BeTrue
-    }
-    It "V-63323-TPMReady: Windows 10 domain-joined systems must have a Trusted Platform Module (TPM) ready for use." {
-      $setting = (Get-Tpm).TpmReady
-      $setting | Should -BeTrue
+    It "V-63323: Windows 10 domain-joined systems must have a Trusted Platform Module (TPM) enabled." {
+      $present = (Get-Tpm).TpmPresent
+      $ready = (Get-Tpm).TpmReady
+      If ($present -and $ready) { $setting = 0 } Else { $setting = 1 }
+      $setting | Should -Be 0
     }
   }
 
