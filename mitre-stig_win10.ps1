@@ -101,6 +101,16 @@ Describe "Software Policies" {
       $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service").DisableRunAs
       $setting | Should -Be 1
     }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63519.rb
+    It "V-63519: The Application event log size must be configured to 32768 KB or greater." {
+      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\Application").MaxSize
+      $setting | Should -BeGreaterOrEqual 32768
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63523.rb
+    It "V-63523: The Security event log size must be configured to 1024000 KB or greater." {
+      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\Security").MaxSize
+      $setting | Should -BeGreaterOrEqual 1024000
+    }
   }
 
   Context "Additional Features" {
@@ -250,6 +260,12 @@ Describe "Account Policies" {
 Describe "Audit Logging" {
 # ! GUIDs retrieved via -- auditpol /list /subcategory:* /r
   Context "Account Logon" {
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63431.rb
+    It "V-63431: The system must be configured to audit Account Logon - Credential Validation failures." {
+      $setting = (auditpol /get /subcategory:"{0CCE923F-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $setting | Should -Not -Be "No Auditing"
+      $setting | Should -BeIn @("Failure", "Success and Failure")
+    }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63435.rb
     It "V-63435: The system must be configured to audit Account Logon - Credential Validation successes." {
       $setting = (auditpol /get /subcategory:"{0CCE923F-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
@@ -385,8 +401,37 @@ Describe "Audit Logging" {
       $setting | Should -Not -Be "No Auditing"
       $setting | Should -BeIn @("Success", "Success and Failure")
     }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63503.rb
+    It "V-63503: The system must be configured to audit System - Other System Events failures." {
+      $setting = (auditpol /get /subcategory:"{0CCE9214-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $setting | Should -Not -Be "No Auditing"
+      $setting | Should -BeIn @("Failure", "Success and Failure")
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63507.rb
+    It "V-63507: The system must be configured to audit System - Security State Change successes." {
+      $setting = (auditpol /get /subcategory:"{0CCE9210-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $setting | Should -Not -Be "No Auditing"
+      $setting | Should -BeIn @("Success", "Success and Failure")
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63513.rb
+    It "V-63513: The system must be configured to audit System - Security System Extension successes." {
+      $setting = (auditpol /get /subcategory:"{0CCE9211-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $setting | Should -Not -Be "No Auditing"
+      $setting | Should -BeIn @("Success", "Success and Failure")
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63515.rb
+    It "V-63515: The system must be configured to audit System - System Integrity failures." {
+      $setting = (auditpol /get /subcategory:"{0CCE9212-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $setting | Should -Not -Be "No Auditing"
+      $setting | Should -BeIn @("Failure", "Success and Failure")
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63517.rb
+    It "V-63517: The system must be configured to audit System - System Integrity successes." {
+      $setting = (auditpol /get /subcategory:"{0CCE9212-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $setting | Should -Not -Be "No Auditing"
+      $setting | Should -BeIn @("Success", "Success and Failure")
+    }
   }
-
 }
 
 Describe "File Permissions" {
