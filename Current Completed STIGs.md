@@ -13,12 +13,6 @@
 - [ ] V-63427
 - [ ] V-63429
 ...
-- [x] V-63527
-- [x] V-63533
-- [x] V-63537
-- [ ] V-63541
-- [ ] V-63545
-- [ ] V-63549
 - [ ] V-63555
 - [ ] V-63559
 - [ ] V-63563
@@ -288,7 +282,12 @@
 - [x] V-63517
 - [x] V-63519
 - [x] V-63523
-
+- [x] V-63527
+- [x] V-63533
+- [x] V-63537
+- [x] V-63541
+- [x] V-63545
+- [x] V-63549
 # Not Implemented
 
 - [x] ~~V-63343~~ | **Not Implemented**: [Requires manual review](https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63343.rb)

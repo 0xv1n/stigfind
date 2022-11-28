@@ -128,6 +128,16 @@ Describe "Software Policies" {
       $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\System").MaxSize
       $setting | Should -BeGreaterOrEqual 32768
     }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63545.rb
+    It "V-63545: Camera access from the lock screen must be disabled." {
+      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization").NoLockScreenCamera
+      $setting | Should -Be 1
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63549.rb
+    It "V-63549: The display of slide shows on the lock screen must be disabled." {
+      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization").NoLockScreenSlideshow
+      $setting | Should -Be 1
+    }
   }
 
   Context "Additional Features" {
