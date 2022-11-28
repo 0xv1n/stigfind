@@ -1,14 +1,26 @@
-# MITRE STIG Baseline - Controls for Windows 10 Workstations
-# AUDITING VIA POWERSHELL
-#   NOTE: Checks are done as specified in the MITRE InSpec profile.
-#     e.g., If a value is not what is specified, it is a "finding".
+# ########################################################################################
+#  _______ _______ ___ _______        _______ __          __ 
+# |   _   |       |   |   _   |______|   _   |__.-----.--|  |
+# |   1___|.|   | |.  |.  |___|______|.  1___|  |     |  _  |
+# |____   `-|.  |-|.  |.  |   |      |.  __| |__|__|__|_____|
+# |:  1   | |:  | |:  |:  1   |      |:  |                   
+# |::.. . | |::.| |::.|::.. . |      |::.|                   
+# `-------' `---' `---`-------'      `---'                   
+#                                              author: 0xv1n
+#
+# STIG Auditing via POWERSHELL - Based on MITRE's InSpec profile
+#
+#   NOTE: 
+#     Checks are done as specified in the MITRE InSpec profile. e.g.,
+#     If a value is not what is specified, it is a "finding".
 #     This can mean that it is configured incorrectly, or does not exist.
-#     For full documentation, refer to MITRE repo, descriptions will not be copied.
+#     
+#   For full documentation, refer to MITRE repo, descriptions will not be copied.
 # 
-# Source:
+# Refernce Source:
 #   https://github.com/mitre/microsoft-windows-10-stig-baseline/tree/master/controls
 # 
-#########################################################################################
+# ########################################################################################
 
 Describe "Software Policies" {
   Context "Operating System" {
@@ -111,6 +123,11 @@ Describe "Software Policies" {
       $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\Security").MaxSize
       $setting | Should -BeGreaterOrEqual 1024000
     }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63527.rb
+    It "V-63527: The System event log size must be configured to 32768 KB or greater." {
+      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\System").MaxSize
+      $setting | Should -BeGreaterOrEqual 32768
+    }
   }
 
   Context "Additional Features" {
@@ -153,7 +170,7 @@ Describe "Software Policies" {
   Context "Certificates" {
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63393.rb
     It "V-63393: Software certificate installation files must be removed from Windows 10." {
-      # ! this is an expensive command.
+      # ! this is an expensive command - will need to explore alternatives.
       $pfx = cmd /c 'where /R c:\ *.p12 *.pfx'
       If ($pfx -ne '') { 
         $setting = 1
@@ -181,7 +198,6 @@ Describe "Hardware Policies" {
   Context "Logical Drives" {
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63353.rb
     It "V-63353: Local volumes must be formatted using NTFS." {
-      # TODO: Is there a better way than this hacky stuff?
       foreach ($disk in (wmic logicaldisk get FileSystem | findstr /r /v '^$' |Findstr /v 'FileSystem')) { If ($disk -ne "NTFS") { $setting = 1; break } Else { $setting = 0 } }
       $setting | Should -Be 0
     }
@@ -199,14 +215,12 @@ Describe "Account Policies" {
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63363.rb
     It "V-63363: Only accounts responsible for the backup operations must be members of the Backup Operators group." {
-      # TODO: Is there a better way than this hacky stuff?
       # Any accounts found added to this group should be reviewed per the STIG.
       foreach ($acct in (net localgroup "Backup Operators" | Format-List | Findstr /V 'Alias Name Comment Members - command')) { If ($acct -ne "") { $setting = 1; break } Else { $setting = 0 } }
       $setting | Should -Be 0
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63365.rb
     It "V-63365: Only authorized user accounts must be allowed to create or run virtual machines on Windows 10 systems." {
-      # TODO: Is there a better way than this hacky stuff?
       # Any accounts found added to this group should be reviewed per the STIG.
       foreach ($acct in (net localgroup "Hyper-V Administrators" | Format-List | Findstr /V 'Alias Name Comment Members - command')) { If ($acct -ne "") { $setting = 1; break } Else { $setting = 0 } }
       $setting | Should -Be 0
@@ -440,7 +454,6 @@ Describe "File Permissions" {
     # Separated to check each default system dir - a single incorrect/unexpected perm fails.
     # For C:\\ local users that can write to this directory will trigger a fail condition
     #   local SID perms are usually listed first.
-    # TODO: In general, I think a better way should be explored.
     It "V-63373-C:\\: Permissions for system files and directories must conform to minimum requirements." {
       $default_perms = @(
         'BUILTIN\\Administrators:(OI)(CI)(F)',
@@ -450,7 +463,6 @@ Describe "File Permissions" {
         'NT AUTHORITY\\Authenticated Users:(AD)', 
         'Mandatory Label\\High Mandatory Level:(OI)(NP)(IO)(NW)'
       )
-      # TODO: Needs more testing
       foreach($line in (icacls 'C:\\' | Findstr /V 'Successfully' | Findstr /r /v "^$")) { $trimmed = ($line | Out-String).Trim(); If ($trimmed -in $default_perms) { $setting = 0 } Else { $setting = 1; break } }
       $setting | Should -Be 0
     }
@@ -471,7 +483,6 @@ Describe "File Permissions" {
         'APPLICATION PACKAGE AUTHORITY\\ALL RESTRICTED APPLICATION',
         'PACKAGES:(OI)(CI)(IO)(GR,GE)'
       )
-      # TODO: Needs more testing
       foreach($line in (icacls 'C:\\Program Files' | Findstr /V 'Successfully' | Findstr /r /v "^$")) { $trimmed = ($line | Out-String).Trim(); If ($trimmed -in $default_perms) { $setting = 0 } Else { $setting = 1; break }  }
       $setting | Should -Be 0
     }
@@ -492,7 +503,6 @@ Describe "File Permissions" {
         'APPLICATION PACKAGE AUTHORITY\\ALL RESTRICTED APPLICATION',
         'PACKAGES:(OI)(CI)(IO)(GR,GE)'
       )
-      # TODO: Needs more testing
       foreach($line in (icacls 'C:\\Windows' | Findstr /V 'Successfully' | Findstr /r /v "^$")) { $trimmed = ($line | Out-String).Trim(); If ($trimmed -in $default_perms) { $setting = 0 } Else {$setting = 1; break}  }
       $setting | Should -Be 0
     }
@@ -500,7 +510,6 @@ Describe "File Permissions" {
 
   Context "File Shares" {
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63357.rb
-    # TODO: Needs more testing/optimization
     It "V-63357: Non system-created file shares on a system must limit access to groups that require it." {
       $default_share_paths = @('C:\WINDOWS', 'C:\')
       foreach ($path in ((Get-WMIObject -Query "SELECT * FROM Win32_Share" | Select-Object Path | Findstr /V "Path --" | Out-String).Trim()))
@@ -514,6 +523,36 @@ Describe "File Permissions" {
           Else { $setting = 0 }
         }
       }
+      $setting | Should -Be 0
+    }
+  }
+
+  Context "Event Logs" {
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63533.rb
+    It "V-63533: Windows 10 permissions for the Application event log must prevent access by non-privileged accounts." {
+      $privaccts = @('NT SERVICE\EventLog', 'NT AUTHORITY\SYSTEM', 'BUILTIN\Administrators')
+      $evtx = Application.evtx
+      $sysroot = (Get-ChildItem Env: | Findstr SystemRoot).split(" ",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $evtxpath = "$sysroot\SYSTEM32\WINEVT\LOGS\$evtx"
+      foreach ($identity in ((Get-Acl $evtxpath).Access).IdentityReference) { If ($identity -in $privaccts) {$setting = 0} Else {$setting = 1; break} }
+      $setting | Should -Be 0
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63537.rb
+    It "V-63537: Windows 10 permissions for the Security event log must prevent access by non-privileged accounts." {
+      $privaccts = @('NT SERVICE\EventLog', 'NT AUTHORITY\SYSTEM', 'BUILTIN\Administrators')
+      $evtx = Security.evtx
+      $sysroot = (Get-ChildItem Env: | Findstr SystemRoot).split(" ",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $evtxpath = "$sysroot\SYSTEM32\WINEVT\LOGS\$evtx"
+      foreach ($identity in ((Get-Acl $evtxpath).Access).IdentityReference) { If ($identity -in $privaccts) {$setting = 0} Else {$setting = 1; break} }
+      $setting | Should -Be 0
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63541.rb
+    It "V-63541: Windows 10 permissions for the System event log must prevent access by non-privileged accounts." {
+      $privaccts = @('NT SERVICE\EventLog', 'NT AUTHORITY\SYSTEM', 'BUILTIN\Administrators')
+      $evtx = System.evtx
+      $sysroot = (Get-ChildItem Env: | Findstr SystemRoot).split(" ",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $evtxpath = "$sysroot\SYSTEM32\WINEVT\LOGS\$evtx"
+      foreach ($identity in ((Get-Acl $evtxpath).Access).IdentityReference) { If ($identity -in $privaccts) {$setting = 0} Else {$setting = 1; break} }
       $setting | Should -Be 0
     }
   }
