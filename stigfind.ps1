@@ -160,15 +160,41 @@ Describe "Software Policies" {
       $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LanmanWorkstation").AllowInsecureGuestAuth
       $setting | Should -Be 0
     }
-
-    # ! Would like to keep numerical order intact, fill above this line
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63581.rb
+    It "V-63581: Simultaneous connections to the Internet or a Windows domain must be limited." {
+      $checkdomainjoined = ((wmic computersystem get domain | FINDSTR /V Domain).split(" ",[StringSplitOptions]'RemoveEmptyEntries'))
+      If ($checkdomainjoined = 'WORKGROUP') { $setting = 0 } Else { $setting = 3 }
+      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WcmSvc\GroupPolicy").fMinimizeConnections
+      $setting | Should -Be 0 -Because "The system is not a member of a domain, control is NA"
+      $setting | Should -Be 1
+      $setting | Should -Not -Be 3
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63585.rb
+    It "V-63585: Connections to non-domain networks when connected to a domain authenticated network must be blocked." {
+      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WcmSvc\GroupPolicy").fBlockNonDomain
+      $setting | Should -Be 1  
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63591.rb
+    It "V-63591: 'Wi-Fi Sense must be disabled." {
+      $curver = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+      If ($curver -gt 1803) { $setting = 2 }
+      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config").AutoConnectAllowedOEM
+      $setting | Should -Be 2 -Because "This is NA as of v1803 of Windows 10; Wi-Fi sense is no longer available."
+      $setting | Should -Be 0
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-88203.rb
+    It "V-88203: OneDrive must only allow synchronizing of accounts for DoD organization instances." {
+      # INPUT - Change value to Organization Tenant GUID
+      $approvedguids = @('{YOUR-ORGANIZATION-GUID-HERE}', '{1111-2222-3333-4444}')
+      $onedrivesetting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\OneDrive\AllowTenantList")
+      If ($onedrivesetting -in $approvedguids) { $setting = 0 } Else { $setting = 1 }
+      $setting | Should -Be 0
+    }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-94719.rb
     It "V-94719: Windows 10 must be configured to prevent Windows apps from being activated by voice while the system is locked." {
       $voiceabove = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy").LetAppsActivateWithVoiceAboveLock
       $voice = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy").LetAppsActivateWithVoice
-      If (($voiceabove -eq 2) -and ($voice -eq 2)) {
-        $setting = 0
-      } Else { $setting = 1 }
+      If (($voiceabove -eq 2) -and ($voice -eq 2)) { $setting = 0 } Else { $setting = 1 }
       $setting | Should -Be 0
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-94859.rb
