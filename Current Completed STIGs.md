@@ -1,5 +1,5 @@
 # Tracker
-*Updated as of:* 2022-11-14
+*Updated as of:* 2022-11-29
 
 # To-Do
 
@@ -13,11 +13,6 @@
 - [ ] V-63427
 - [ ] V-63429
 ...
-- [ ] V-63555
-- [ ] V-63559
-- [ ] V-63563
-- [ ] V-63567
-- [ ] V-63569
 - [ ] V-63577
 - [ ] V-63579
 - [ ] V-63581
@@ -210,15 +205,8 @@
 - [ ] V-99541
 - [ ] V-99543
 - [ ] V-99545
-- [ ] V-99547
-- [ ] V-99549
-- [ ] V-99551
-- [ ] V-99553
 - [ ] V-99555
-- [ ] V-99557
-- [ ] V-99559
-- [ ] V-99561
-- [ ] V-99563
+
 # Completed 
 
 - [x] V-63319
@@ -288,8 +276,22 @@
 - [x] V-63541
 - [x] V-63545
 - [x] V-63549
+- [x] V-63555
+- [x] V-63563
+- [x] V-63567
+- [x] V-63569
+- [x] V-99557
+- [x] V-99559
+- [x] V-99561
+- [x] V-99563
+- [x] V-99547
+- [x] V-99549
+- [x] V-99551
+- [x] V-99553
+
 # Not Implemented
 
 - [x] ~~V-63343~~ | **Not Implemented**: [Requires manual review](https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63343.rb)
 - [x] ~~V-63345~~ | **Not Implemented**: [Requires manual review](https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63345.rb)
 - [x] ~~V-63403~~ | **Not Implemented**: [Requires manual review](https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63403.rb)
+- [x] ~~V-63559~~ | **Not Implemented**: [Duplicate of V-63555](https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63559.rb)

@@ -4,20 +4,22 @@
 # |   1___|.|   | |.  |.  |___|______|.  1___|  |     |  _  |
 # |____   `-|.  |-|.  |.  |   |      |.  __| |__|__|__|_____|
 # |:  1   | |:  | |:  |:  1   |      |:  |                   
-# |::.. . | |::.| |::.|::.. . |      |::.|                   
+# |::.. . | |::.| |::.|::.. . |      |::.|    author: 0xv1n             
 # `-------' `---' `---`-------'      `---'                   
-#                                              author: 0xv1n
+# 
+# Purpose: 
+#     This project exists to bring STIG compliance auditing to the hands of anyone. 
+#     STIG-Find is built upon the Pester test framework, and allows unit-test style 
+#     programatic auditing of the DISA STIGs for Windows 10 Enterprise images.
 #
-# STIG Auditing via POWERSHELL - Based on MITRE's InSpec profile
-#
-#   NOTE: 
-#     Checks are done as specified in the MITRE InSpec profile. e.g.,
-#     If a value is not what is specified, it is a "finding".
-#     This can mean that it is configured incorrectly, or does not exist.
+# NOTE: 
+#     Checks are performed as specified in the MITRE InSpec profile. e.g.,
+#     If a value is NOT what is specified, it is a "finding".
+#     This can mean that it is configured incorrectly, exists, or does not exist.
 #     
 #   For full documentation, refer to MITRE repo, descriptions will not be copied.
 # 
-# Refernce Source:
+# Reference Source:
 #   https://github.com/mitre/microsoft-windows-10-stig-baseline/tree/master/controls
 # 
 # ########################################################################################
@@ -136,6 +138,48 @@ Describe "Software Policies" {
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63549.rb
     It "V-63549: The display of slide shows on the lock screen must be disabled." {
       $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization").NoLockScreenSlideshow
+      $setting | Should -Be 1
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63555.rb
+    It "V-63555: IPv6 source routing must be configured to highest protection." {
+      $setting = (Get-ItemProperty "HKLM:\System\CurrentControlSet\Services\Tcpip6\Parameters").DisableIPSourceRouting
+      $setting | Should -Be 2
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63563.rb
+    It "V-63563: The system must be configured to prevent Internet Control Message Protocol (ICMP) redirects from overriding Open Shortest Path First (OSPF) generated routes." {
+      $setting = (Get-ItemProperty "HKLM:\System\CurrentControlSet\Services\Tcpip\Parameters").EnableICMPRedirect
+      $setting | Should -Be 0
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63567.rb
+    It "V-63567: The system must be configured to ignore NetBIOS name release requests except from WINS servers." {
+      $setting = (Get-ItemProperty "HKLM:\System\CurrentControlSet\Services\Netbt\Parameters").NoNameReleaseOnDemand
+      $setting | Should -Be 1
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63569.rb
+    It "V-63569: Insecure logons to an SMB server must be disabled." {
+      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LanmanWorkstation").AllowInsecureGuestAuth
+      $setting | Should -Be 0
+    }
+
+    # ! Would like to keep numerical order intact, fill above this line
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-99557.rb
+    It "V-99557: Windows 10 Kernel (Direct Memory Access) DMA Protection must be enabled." {
+      $setting = (Get-ItemProperty "HKLM:\Software\Policies\Microsoft\Windows\Kernel DMA Protection").DeviceEnumerationPolicy
+      $setting | SHould -Be 0
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-99559.rb
+    It "V-99559: The convenience PIN for Windows 10 must be disabled." {
+      $setting = (Get-ItemProperty "HKLM:\Software\Policies\Microsoft\Windows\System").AllowDomainPINLogon
+      $setting | Should -Be 0
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-99561.rb
+    It "V-99561: Windows Ink Workspace configured but disallow access above the lock." {
+      $setting = (Get-ItemProperty "HKLM:\Software\Policies\Microsoft\WindowsInkWorkspace").AllowWindowsInkWorkspace
+      $setting | Should -Be 1
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-99563.rb
+    It "V-99563: Windows 10 should be configured to prevent users from receiving suggestions for third-party or additional applications." {
+      $setting = (Get-ItemProperty "HKLM:\Software\Policies\Microsoft\Windows\CloudContent").DisableThirdPartySuggestions
       $setting | Should -Be 1
     }
   }
@@ -395,6 +439,30 @@ Describe "Audit Logging" {
       $setting | Should -Not -Be "No Auditing"
       $setting | Should -BeIn @("Success", "Success and Failure")
     }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-99547.rb
+    It "V-99547: Windows 10 must be configured to audit MPSSVC Rule-Level Policy Change Successes." {
+      $setting = (auditpol /get /subcategory:"{0CCE9232-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $setting | Should -Not -Be "No Auditing"
+      $setting | Should -BeIn @("Success", "Success and Failure")
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-99549.rb
+    It "V-99549: Windows 10 must be configured to audit MPSSVC Rule-Level Policy Change Failures." {
+      $setting = (auditpol /get /subcategory:"{0CCE9232-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $setting | Should -Not -Be "No Auditing"
+      $setting | Should -BeIn @("Failure", "Success and Failure")
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-99551.rb
+    It "V-99551: Windows 10 must be configured to audit Other Policy Change Events Successes." {
+      $setting = (auditpol /get /subcategory:"{0CCE9234-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $setting | Should -Not -Be "No Auditing"
+      $setting | Should -BeIn @("Success", "Success and Failure")
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-99553.rb
+    It "V-99553: Windows 10 must be configured to audit Other Policy Change Events Failures." {
+      $setting = (auditpol /get /subcategory:"{0CCE9234-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $setting | Should -Not -Be "No Auditing"
+      $setting | Should -BeIn @("Failure", "Success and Failure")
+    }
   }
 
   Context "Privilege Use" {
@@ -456,6 +524,7 @@ Describe "Audit Logging" {
       $setting | Should -BeIn @("Success", "Success and Failure")
     }
   }
+
 }
 
 Describe "File Permissions" {
