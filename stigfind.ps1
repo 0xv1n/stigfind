@@ -162,6 +162,32 @@ Describe "Software Policies" {
     }
 
     # ! Would like to keep numerical order intact, fill above this line
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-94719.rb
+    It "V-94719: Windows 10 must be configured to prevent Windows apps from being activated by voice while the system is locked." {
+      $voiceabove = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy").LetAppsActivateWithVoiceAboveLock
+      $voice = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy").LetAppsActivateWithVoice
+      If (($voiceabove -eq 2) -and ($voice -eq 2)) {
+        $setting = 0
+      } Else { $setting = 1 }
+      $setting | Should -Be 0
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-94859.rb
+    It "V-94859: Windows 10 systems must use a BitLocker PIN for pre-boot authentication." {
+      $advstartup = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\FVE").UseAdvancedStartup
+      $tpmpin = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\FVE").UseTPMPIN
+      $tpmkeypin = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\FVE").UseTPMKeyPIN
+      If (($advstartup -eq 1) -and ($tpmpin -eq 1) -and ($tpmkeypin -eq 1)) {
+        $setting = 0;
+      } Else { $setting = 1 }
+      $setting | Should -Be 0
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-94861.rb
+    It "V-94861: Windows 10 systems must use a BitLocker PIN with a minimum length of <x> digits for pre-boot authentication." {
+      # INPUT - Change x value to desired value. NA for VDIs
+      $inval = 0
+      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Bitlocker").MinimumPIN
+      $setting | Should -BeGreaterOrEqual $inval
+    }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-99557.rb
     It "V-99557: Windows 10 Kernel (Direct Memory Access) DMA Protection must be enabled." {
       $setting = (Get-ItemProperty "HKLM:\Software\Policies\Microsoft\Windows\Kernel DMA Protection").DeviceEnumerationPolicy
@@ -409,6 +435,18 @@ Describe "Audit Logging" {
       $setting | Should -Not -Be "No Auditing"
       $setting | Should -BeIn @("Success", "Success and Failure")
     }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-99543.rb
+    It "V-99541: Windows 10 must be configured to audit other Logon/Logoff Events Failures." {
+      $setting = (auditpol /get /subcategory:"{0CCE921C-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $setting | Should -Not -Be "No Auditing"
+      $setting | Should -BeIn @("Failure", "Success and Failure")     
+    }    
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-99543.rb
+    It "V-99543: Windows 10 must be configured to audit other Logon/Logoff Events Successes." {
+      $setting = (auditpol /get /subcategory:"{0CCE921C-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $setting | Should -Not -Be "No Auditing"
+      $setting | Should -BeIn @("Success", "Success and Failure")     
+    }
   }
 
   Context "Object Access" {
@@ -423,6 +461,12 @@ Describe "Audit Logging" {
       $setting = (auditpol /get /subcategory:"{0CCE9245-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
       $setting | Should -Not -Be "No Auditing"
       $setting | Should -BeIn @("Success", "Success and Failure")
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-99545.rb
+    It "V-99545: Windows 10 must be configured to audit Detailed File Share Failures." {
+      $setting = (auditpol /get /subcategory:"{0CCE9244-69AE-11D9-BED3-505054503030}" /r).split(",",[StringSplitOptions]'RemoveEmptyEntries')[-1]
+      $setting | Should -Not -Be "No Auditing"
+      $setting | Should -BeIn @("Failure", "Success and Failure")     
     }
   }
 
