@@ -163,11 +163,14 @@ Describe "Software Policies" {
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63581.rb
     It "V-63581: Simultaneous connections to the Internet or a Windows domain must be limited." {
       $checkdomainjoined = ((wmic computersystem get domain | FINDSTR /V Domain).split(" ",[StringSplitOptions]'RemoveEmptyEntries'))
-      If ($checkdomainjoined = 'WORKGROUP') { $setting = 0 } Else { $setting = 3 }
-      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WcmSvc\GroupPolicy").fMinimizeConnections
-      $setting | Should -Be 0 -Because "The system is not a member of a domain, control is NA"
-      $setting | Should -Be 1
-      $setting | Should -Not -Be 3
+      If ($checkdomainjoined -eq 'WORKGROUP') { 
+        $setting = 0
+        $setting | Should -Be 0 -Because "The system is not a member of a domain, control is NA" 
+      }
+      Else {
+        $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WcmSvc\GroupPolicy").fMinimizeConnections
+        $setting | Should -Be 1
+      }
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63585.rb
     It "V-63585: Connections to non-domain networks when connected to a domain authenticated network must be blocked." {
@@ -181,6 +184,38 @@ Describe "Software Policies" {
       $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config").AutoConnectAllowedOEM
       $setting | Should -Be 2 -Because "This is NA as of v1803 of Windows 10; Wi-Fi sense is no longer available."
       $setting | Should -Be 0
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63615.rb
+    It "V-63615: Downloading print driver packages over HTTP must be prevented." {
+      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Printers").DisableWebPnPDownload
+      $setting | Should -Be 1
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63617.rb
+    It "V-63617: Local accounts with blank passwords must be restricted to prevent access from the network" {
+      $setting = (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa").LimitBlankPasswordUse
+      $setting | Should -Be 1
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63621.rb
+    It "V-63621: Web publishing and online ordering wizards must be prevented from downloading a list of providers." {
+      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer").NoWebServices
+      $setting | Should -Be 1
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63623.rb
+    It "V-63623: Printing over HTTP must be prevented." {
+      $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Printers").DisableHTTPPrinting
+      $setting | Should -Be 1
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63627.rb
+    It "V-63627: Systems must at least attempt device authentication using certificates." {
+      $checkdomainjoined = ((wmic computersystem get domain | FINDSTR /V Domain).split(" ",[StringSplitOptions]'RemoveEmptyEntries'))
+      If ($checkdomainjoined -eq 'WORKGROUP') { 
+        $setting = 0
+        $setting | Should -Be 0 -Because "The system is not a member of a domain, control is NA" 
+      }
+      Else {
+        $setting = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Kerberos\Parameters").DevicePKInitEnabled
+        $setting | Should -Be 1
+      }
     }
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-88203.rb
     It "V-88203: OneDrive must only allow synchronizing of accounts for DoD organization instances." {
@@ -340,6 +375,21 @@ Describe "Account Policies" {
       # Note: A single enabled default account fails this test, review the list of local users.
       foreach ($acct in $default_acct) { If ((Get-LocalUser $acct).Enabled -eq "True") { $setting = 1; break } Else { $setting = 0 } }
       $setting | Should -Be 0
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63611.rb
+    It "V-63611: The built-in guest account must be disabled." {
+      $setting = (Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount='$true'" | Where-Object {$_.Name -eq 'Guest'} | ForEach-Object { $_.Disabled })
+      $setting | Should -Be 'True'
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63619.rb
+    It "V-63619: The built-in administrator account must be renamed." {
+      $setting = (Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount='$true'" | Where-Object {$_.Name -eq 'Administrator'} | ForEach-Object { $_.Disabled })
+      $setting | Should -BeNullOrEmpty -Because "Administrator account should be renamed."
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63625.rb
+    It "V-63625: The built-in guest account must be renamed." {
+      $setting = (Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount='$true'" | Where-Object {$_.Name -eq 'Guest'} | ForEach-Object { $_.Disabled })
+      $setting | Should -BeNullOrEmpty -Because "Guest account should be renamed."
     }
   }
 
