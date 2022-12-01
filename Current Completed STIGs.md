@@ -1,5 +1,5 @@
 # Tracker
-*Updated as of:* 2022-11-14
+*Updated as of:* 2022-11-29
 
 # To-Do
 
@@ -12,26 +12,11 @@
 - [ ] V-63423
 - [ ] V-63427
 - [ ] V-63429
-...
-- [x] V-63527
-- [x] V-63533
-- [x] V-63537
-- [ ] V-63541
-- [ ] V-63545
-- [ ] V-63549
-- [ ] V-63555
-- [ ] V-63559
-- [ ] V-63563
-- [ ] V-63567
-- [ ] V-63569
 - [ ] V-63577
 - [ ] V-63579
-- [ ] V-63581
 - [ ] V-63583
-- [ ] V-63585
 - [ ] V-63587
 - [ ] V-63589
-- [ ] V-63591
 - [ ] V-63593
 - [ ] V-63595
 - [ ] V-63597
@@ -39,14 +24,9 @@
 - [ ] V-63601
 - [ ] V-63607
 - [ ] V-63609
-- [ ] V-63611
-- [ ] V-63615
-- [ ] V-63617
-- [ ] V-63619
-- [ ] V-63621
-- [ ] V-63623
-- [ ] V-63625
-- [ ] V-63627
+
+--- 
+
 - [ ] V-63629
 - [ ] V-63633
 - [ ] V-63635
@@ -209,22 +189,8 @@
 - [ ] V-82137
 - [ ] V-82139
 - [ ] V-82145
-- [ ] V-88203
-- [ ] V-94719
-- [ ] V-94859
-- [ ] V-94861
-- [ ] V-99541
-- [ ] V-99543
-- [ ] V-99545
-- [ ] V-99547
-- [ ] V-99549
-- [ ] V-99551
-- [ ] V-99553
 - [ ] V-99555
-- [ ] V-99557
-- [ ] V-99559
-- [ ] V-99561
-- [ ] V-99563
+
 # Completed 
 
 - [x] V-63319
@@ -288,9 +254,46 @@
 - [x] V-63517
 - [x] V-63519
 - [x] V-63523
+- [x] V-63527
+- [x] V-63533
+- [x] V-63537
+- [x] V-63541
+- [x] V-63545
+- [x] V-63549
+- [x] V-63555
+- [x] V-63563
+- [x] V-63567
+- [x] V-63569
+- [x] V-99557
+- [x] V-99559
+- [x] V-99561
+- [x] V-99563
+- [x] V-99547
+- [x] V-99549
+- [x] V-99551
+- [x] V-99553
+- [x] V-99541
+- [x] V-99543
+- [x] V-99545
+- [x] V-94719
+- [x] V-94859
+- [x] V-94861
+- [x] V-63581
+- [x] V-88203
+- [x] V-63585
+- [x] V-63591
+- [x] V-63611
+- [x] V-63615
+- [x] V-63617
+- [x] V-63619
+- [x] V-63621
+- [x] V-63623
+- [x] V-63625
+- [x] V-63627
 
 # Not Implemented
 
 - [x] ~~V-63343~~ | **Not Implemented**: [Requires manual review](https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63343.rb)
 - [x] ~~V-63345~~ | **Not Implemented**: [Requires manual review](https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63345.rb)
 - [x] ~~V-63403~~ | **Not Implemented**: [Requires manual review](https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63403.rb)
+- [x] ~~V-63559~~ | **Not Implemented**: [Duplicate of V-63555](https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63559.rb)
