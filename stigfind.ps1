@@ -1,11 +1,12 @@
 # ########################################################################################
-#  _______ _______ ___ _______        _______ __          __ 
+#  _______ _______ ___ _______        _______ __          __
 # |   _   |       |   |   _   |______|   _   |__.-----.--|  |
 # |   1___|.|   | |.  |.  |___|______|.  1___|  |     |  _  |
 # |____   `-|.  |-|.  |.  |   |      |.  __| |__|__|__|_____|
-# |:  1   | |:  | |:  |:  1   |      |:  |                   
+# |:  1   | |:  | |:  |:  1   |      |:  |
 # |::.. . | |::.| |::.|::.. . |      |::.|    author: 0xv1n             
-# `-------' `---' `---`-------'      `---'                   
+# `-------' `---' `---`-------'      `---'
+# A free and open source STIG compliance audit tool.   
 # 
 # Purpose: 
 #     This project exists to bring STIG compliance auditing to the hands of anyone. 
@@ -267,6 +268,26 @@ Describe "Software Policies" {
     # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-99563.rb
     It "V-99563: Windows 10 should be configured to prevent users from receiving suggestions for third-party or additional applications." {
       $setting = (Get-ItemProperty "HKLM:\Software\Policies\Microsoft\Windows\CloudContent").DisableThirdPartySuggestions
+      $setting | Should -Be 1
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63629.rb
+    It "V-63629: The network selection user interface (UI) must not be displayed on the logon screen." {
+      $setting = (Get-ItemProperty "HKLM:\Software\Policies\Microsoft\Windows\System").DontDisplayNetworkSelectionUI
+      $setting | Should -Be 1
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63633.rb
+    It "V-63633: Local users on domain-joined computers must not be enumerated" {
+      $checkdomainjoined = (wmic computersystem get domain | FINDSTR /V Domain).split(" ",[StringSplitOptions]'RemoveEmptyEntries')
+      If ($checkdomainjoined -eq 'WORKGROUP') { 
+        $setting = 0
+        $setting | Should -Be 0 -Because "The system is not a member of a domain, control is NA" 
+      }  
+      $setting = (Get-ItemProperty "HKLM:\Software\Policies\Microsoft\Windows\System").EnumerateLocalUsers
+      $setting | Should -Be 0
+    }
+    # https://github.com/mitre/microsoft-windows-10-stig-baseline/blob/master/controls/V-63635.rb
+    It "V-63635: Audit policy using subcategories must be enabled." {
+      $setting = (Get-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa").SCENoApplyLegacyAuditPolicy
       $setting | Should -Be 1
     }
   }
